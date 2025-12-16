@@ -1,0 +1,39 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "schedule": [
+    "before 5am on Monday"
+  ],
+  "timezone": "Europe/Amsterdam",
+  "labels": ["dependencies"],
+  "assignees": ["@orzesmatteo"],
+  "packageRules": [
+    {
+      "description": "Auto-merge GitHub Actions minor and patch updates",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "Group GitHub Actions updates",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions"
+    },
+    {
+      "description": "Pin actions to SHAs for security",
+      "matchManagers": ["github-actions"],
+      "pinDigests": true
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"]
+  },
+  "prConcurrentLimit": 3,
+  "prCreation": "immediate",
+  "rebaseWhen": "behind-base-branch"
+}
