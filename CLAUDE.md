@@ -2,118 +2,47 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Repository Overview
+## Build
 
-This is a LaTeX-based curriculum vitae (CV) repository using the Awesome CV template. The repository uses GitHub Actions for automated CV compilation and release management.
-
-## Building the CV
-
-### Compile to PDF
-The CV uses XeLaTeX for compilation. To build:
+Compile the CV to PDF using XeLaTeX:
 ```bash
 xelatex cv.tex
 ```
-
-Or use `latexmk` with XeLaTeX:
+Or with latexmk (recommended):
 ```bash
 latexmk -xelatex cv.tex
 ```
+Output is `cv.pdf` (gitignored). PDFs are only distributed via GitHub Releases as `CV_Orzes_Matteo.pdf`.
 
-The build process generates `cv.pdf` as the output (though .pdf files are gitignored).
+## Architecture
 
-## Document Structure
+LaTeX CV using the [Awesome CV](https://github.com/posquit0/Awesome-CV) template with XeLaTeX for custom font support.
 
-### Main Document
-- `cv.tex` - Main document that includes all sections and defines personal information
-- `awesome-cv.cls` - Custom LaTeX class file defining all styles, commands, and layouts
+- `cv.tex` — Main document: personal info, layout config, imports sections in order
+- `awesome-cv.cls` — Template class file (do not modify unless changing the template itself)
+- `cv/` — Content sections (`education.tex`, `skills.tex`, `experience.tex`), imported by `cv.tex` via `\input{}`
+- `fonts/` — Roboto family + FontAwesome, referenced via `\fontdir[fonts/]`
 
-### Content Sections (in `cv/` directory)
-- `cv/education.tex` - Education section
-- `cv/skills.tex` - Skills section
-- `cv/experience.tex` - Professional experience section
+**To edit CV content**, modify files in `cv/`. To change personal info or section order, edit `cv.tex`.
 
-To modify CV content, edit these section files. The main `cv.tex` file imports them in order using `\input{cv/filename.tex}`.
+## Key LaTeX Commands
 
-## Personal Information
-
-Personal details are defined in `cv.tex` using these commands:
-- `\name{Firstname}{Lastname}`
-- `\position{Job Title}`
-- `\mobile{Phone}`
-- `\email{Email}`
-- `\linkedin{username}`
-- `\photo{./profile.png}`
-- `\quote{Quote text}`
-
-## CV Structure Commands
-
-The Awesome CV class provides these main commands:
-
-**Sections:**
-- `\cvsection{Title}` - Major section header
-
-**Experience entries:**
-- `\cventry{position}{organization}{location}{dates}{description}`
-- Use `\begin{cvitems}...\end{cvitems}` within description for bulleted lists
-
-**Skills:**
-- `\cvskill{category}{skills list}`
-
-**Education:**
-- Same as `\cventry` but typically simpler
-
-## GitHub Actions Workflows
-
-### Versioning
-The repository uses semantic versioning stored in the `version` file at the root. This must follow the format `X.Y.Z` (e.g., `1.0.0`).
-
-### Workflow Triggers
-
-**FeaturePush.yml** - Runs on all branches except master:
-- Builds the LaTeX document to verify compilation
-
-**MergeRequest.yml** - Runs on pull requests to master:
-- Validates version tag format (must be `X.Y.Z`)
-- Checks that the version tag doesn't already exist
-- Builds the CV and creates `CV_Orzes_Matteo.pdf`
-- Creates a temporary draft release for testing
-- Cleans up the test tag and release
-
-**CreateReleaseAfterMerge.yml** - Runs on pushes to master:
-- Validates and creates the version tag
-- Compiles the CV to `CV_Orzes_Matteo.pdf`
-- Creates a GitHub release with the compiled PDF
-
-## Updating the CV
-
-To add a new version:
-1. Edit the relevant `.tex` files in `cv/` directory
-2. Update the `version` file with the new version number
-3. Commit changes to a feature branch
-4. Create a pull request to master - this will validate the build
-5. After merge to master, a release is automatically created with the compiled PDF
-
-## Fonts
-
-Custom fonts are in the `fonts/` directory:
-- Roboto family (Regular, Bold, Italic, Light, Medium, Thin variants)
-- FontAwesome for icons
-
-The document uses XeLaTeX to support these custom fonts.
-
-## Color Scheme
-
-Available color themes defined in the class file:
-- awesome-emerald
-- awesome-skyblue
-- awesome-red (currently selected)
-- awesome-pink
-- awesome-orange
-- awesome-nephritis
-- awesome-concrete
-- awesome-darknight
-
-Change the color in `cv.tex`:
 ```latex
-\colorlet{awesome}{awesome-red}
+\cventry{position}{organization}{location}{dates}{description}  % Experience/education entries
+\cvskill{category}{skills list}                                  % Skills entries
+\cvsection{Title}                                                % Section headers
+\begin{cvitems}...\end{cvitems}                                  % Bullet lists inside cventry
 ```
+
+## Release Workflow — Critical Details
+
+**The `version` file is tightly coupled to CI.** Every PR to master must bump it. Format: `X.Y.Z` (no `v` prefix — workflows add it).
+
+Three workflows exist:
+1. **FeaturePush.yml** — Any non-master push: compile-only validation
+2. **MergeRequest.yml** — PR to master: validates version format, checks tag uniqueness, builds PDF, creates+deletes a temporary draft release as a smoke test
+3. **CreateReleaseAfterMerge.yml** — Push to master: creates git tag `vX.Y.Z`, compiles PDF, publishes GitHub Release with `CV_Orzes_Matteo.pdf` attached
+
+**If the version tag already exists, both PR and release workflows will fail.** Always increment the version when making changes.
+
+All GitHub Actions are pinned to full commit SHAs (not version tags) for security. Renovate auto-merges minor/patch action updates weekly (Monday before 5am CET).

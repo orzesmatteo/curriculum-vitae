@@ -19,15 +19,15 @@ jobs:
         
       - name: Tag check
         run: |
-          export ORIGINAL_CODE_TAG=$(echo -n | cat version) && echo "Code tag is: $ORIGINAL_CODE_TAG"
+          ORIGINAL_CODE_TAG=$(<version) && echo "Code tag is: $ORIGINAL_CODE_TAG"
           [[ $ORIGINAL_CODE_TAG =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || (echo $'unsuitable tag for deployment: regex \'^[0-9]+\.[0-9]+\.[0-9]+$\' was not respected'; exit 99)
-          export CODE_TAG="v${ORIGINAL_CODE_TAG}"
+          CODE_TAG="v${ORIGINAL_CODE_TAG}"
           echo "CODE_TAG=$CODE_TAG" >> $GITHUB_ENV
-          echo "PRESERVE_TAG=true" >> $GITHUB_ENV
+          echo "PRESERVE_TAG=false" >> $GITHUB_ENV
           git fetch --depth=10
-          git tag | grep "$CODE_TAG" && export CODE_TAG_EXISTS=true && echo "ERROR: THIS TAG ALREADY EXISTS WITHIN THE REPO! EXITING" && sed -i 's/PRESERVE_TAG=false/PRESERVE_TAG=true/g' $GITHUB_ENV  && exit 99
+          git tag -l "$CODE_TAG" | grep -qx "$CODE_TAG" && echo "ERROR: THIS TAG ALREADY EXISTS WITHIN THE REPO! EXITING" && sed -i 's/PRESERVE_TAG=false/PRESERVE_TAG=true/g' $GITHUB_ENV && exit 99
           echo " ==> TAGS: Checks ok!"
-          echo " ==> TAGS: Tag is $CODE_TAG" && [[ $CODE_TAG_EXISTS != "true" ]] && git tag $CODE_TAG && git push --tags
+          echo " ==> TAGS: Tag is $CODE_TAG" && git tag "$CODE_TAG" && git push --tags
           echo "ORIGINAL_CODE_TAG=$ORIGINAL_CODE_TAG" >> $GITHUB_ENV
           
       - name: Build LaTeX document
