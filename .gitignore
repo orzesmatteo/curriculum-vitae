@@ -48,6 +48,10 @@ latex.out/
 .idea/
 .vscode/
 
+## Claude Code
+.claude/
+CLAUDE.md
+
 ## Auxiliary and intermediate files from other packages:
 # algorithms
 *.alg
